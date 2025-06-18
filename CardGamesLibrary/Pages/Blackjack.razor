@@ -1,0 +1,51 @@
+@page "/blackjack"
+@using Microsoft.AspNetCore.Components.Web
+@using CardGamesLibrary.Shared
+@inject BlackjackGameService GameService
+
+<PageTitle>Blackjack</PageTitle>
+
+<h1>Blackjack</h1>
+
+@if (!GameService.GameStarted && GameService.PlayerHand.Count == 0 && GameService.DealerHand.Count == 0)
+{
+    <button class="btn btn-success" @onclick="GameService.StartGame">Start Blackjack Game</button>
+}
+else
+{
+    <h3>Your Hand (@GameService.GetHandValue(GameService.PlayerHand))</h3>
+    <ul>
+        @foreach (var card in GameService.PlayerHand)
+        {
+            <li>@((MarkupString)card.ToString())</li>
+        }
+    </ul>
+    <h3>Dealer's Hand (@GameService.GetHandValue(GameService.DealerHand))</h3>
+    <ul>
+        @foreach (var card in GameService.DealerHand)
+        {
+            <li>@((MarkupString)card.ToString())</li>
+        }
+    </ul>
+    <div class="mb-2">
+        <button class="btn btn-primary me-2" @onclick="OnHit" disabled="@(!GameService.GameStarted || GameService.GetHandValue(GameService.PlayerHand) >= 21 || !string.IsNullOrEmpty(GameService.GetGameResult()))">Hit</button>
+        <button class="btn btn-warning me-2" @onclick="@(() => OnStand())" disabled="@(!GameService.GameStarted || !string.IsNullOrEmpty(GameService.GetGameResult()))">Stand</button>
+        <button class="btn btn-secondary" @onclick="OnNewHand" disabled="@(GameService.GameStarted)">New Hand</button>
+    </div>
+    <h4>Recommended Action: <span class="text-info">@GameService.GetBasicStrategyRecommendation()</span></h4>
+    @if (!string.IsNullOrEmpty(GameService.GetGameResult()))
+    {
+        <div class="alert alert-info">@GameService.GetGameResult()</div>
+    }
+}
+
+@code {
+    void OnHit() => GameService.PlayerHit();
+    void OnStand() => GameService.PlayerStand();
+    void OnNewHand()
+    {
+        GameService.PlayerHand.Clear();
+        GameService.DealerHand.Clear();
+        GameService.GameStarted = false;
+    }
+}

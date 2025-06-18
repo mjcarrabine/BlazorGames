@@ -1,0 +1,32 @@
+@using CardGamesLibrary.Shared
+@inherits Microsoft.AspNetCore.Components.ComponentBase
+
+<div class="uno-card" style="display:inline-block; border:2px solid black; border-radius:10px; width:60px; height:90px; background:@GetColor(); color:white; text-align:center; font-size:1.5em; margin:2px; position:relative;">
+    <span style="display:block; margin-top:30px; font-weight:bold;">@GetDisplayValue()</span>
+</div>
+
+@code {
+    [Parameter]
+    public UnoCard? Card { get; set; }
+
+    private string GetColor()
+    {
+        return Card?.Color switch
+        {
+            UnoColor.Red => "#e53935",
+            UnoColor.Yellow => "#fbc02d",
+            UnoColor.Green => "#43a047",
+            UnoColor.Blue => "#1e88e5",
+            UnoColor.Wild => "#333",
+            _ => "#888"
+        };
+    }
+
+    private string GetDisplayValue()
+    {
+        if (Card == null) return "";
+        if ((int)Card.Value >= 0 && (int)Card.Value <= 9)
+            return ((int)Card.Value).ToString();
+        return Card.Value.ToString();
+    }
+}

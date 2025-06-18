@@ -1,0 +1,90 @@
+@page "/uno"
+
+@using CardGamesLibrary.Shared
+@using Microsoft.AspNetCore.Components.Web
+@inject UnoGameService GameService
+
+<PageTitle>Uno</PageTitle>
+
+<h1>Uno</h1>
+
+@if (!GameService.GameStarted)
+{
+    <button class="btn btn-success" @onclick="GameService.StartGame">Start Uno Game</button>
+}
+else
+{
+    <h3>Your Hand</h3>
+    <ul class="list-unstyled d-flex flex-wrap">
+        @foreach (var card in GameService.GetSortedPlayerHand())
+        {
+            <li class="me-2 mb-2" style="display:inline-block;">
+                <UnoCardDisplay Card="card" />
+                @if (GameService.PlayerTurn && GameService.CanPlay(card))
+                {
+                    <div class="mt-1 text-center">
+                        @if (card.Color == UnoColor.Wild)
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="() => PromptWildColor(card)">Play</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="() => PlayCard(card)">Play</button>
+                        }
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+    @if (GameService.AwaitingWildColor && pendingWildCard != null)
+    {
+        <div class="mb-2">
+            <span>Select a color:</span>
+            @foreach (UnoColor color in Enum.GetValues(typeof(UnoColor)))
+            {
+                if (color != UnoColor.Wild)
+                {
+                    <button class="btn btn-outline-dark ms-1" @onclick="() => ConfirmWildColor(pendingWildCard, color)">@color</button>
+                }
+            }
+        </div>
+    }
+    <button class="btn btn-secondary mb-2" @onclick="DrawCard" disabled="@(!GameService.PlayerTurn)">Draw Card</button>
+    <h3>Computer's Hand (@GameService.ComputerHand.Count cards)</h3>
+    <ul class="list-unstyled d-flex flex-wrap">
+        @foreach (var card in GameService.ComputerHand)
+        {
+            <li class="me-2 mb-2" style="display:inline-block;">
+                <UnoCardDisplay Card="null" />
+            </li>
+        }
+    </ul>
+    <h4>Top Card: <span class="text-info"><UnoCardDisplay Card="GameService.TopCard" /></span></h4>
+    <div class="alert alert-info">@GameService.Message</div>
+}
+
+@code {
+    UnoCard? pendingWildCard;
+    void PromptWildColor(UnoCard card)
+    {
+        pendingWildCard = card;
+        GameService.AwaitingWildColor = true;
+        StateHasChanged();
+    }
+    void ConfirmWildColor(UnoCard card, UnoColor color)
+    {
+        GameService.PlayCard(card, color);
+        pendingWildCard = null;
+        StateHasChanged();
+    }
+    void PlayCard(UnoCard card)
+    {
+        GameService.PlayCard(card);
+        StateHasChanged();
+    }
+    async Task DrawCard()
+    {
+        GameService.PlayerDrawCards(1);
+        await InvokeAsync(StateHasChanged);
+    }
+}

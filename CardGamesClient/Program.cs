@@ -9,5 +9,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped<CardGamesLibrary.Shared.SolitaireGameService>();
 builder.Services.AddScoped<CardGamesLibrary.Shared.WarGameService>();
+builder.Services.AddScoped<CardGamesLibrary.Shared.BlackjackGameService>();
+builder.Services.AddScoped<CardGamesLibrary.Shared.UnoGameService>();
 
 await builder.Build().RunAsync();
