@@ -7,13 +7,33 @@
 <PageTitle>Uno</PageTitle>
 
 <h1>Uno</h1>
+<a href="https://service.mattel.com/instruction_sheets/42001pr.pdf" target="_blank" rel="noopener noreferrer">Instructions</a>
 
-@if (!GameService.GameStarted)
+@if (!GameService.GameStarted && !string.IsNullOrWhiteSpace(GameService.Message) && (GameService.Message.Contains("win") || GameService.Message.Contains("Win")))
+{
+    <div class="alert alert-success">@GameService.Message</div>
+    <button class="btn btn-success" @onclick="GameService.StartGame">Start Uno Game</button>
+}
+else if (!GameService.GameStarted)
 {
     <button class="btn btn-success" @onclick="GameService.StartGame">Start Uno Game</button>
 }
 else
 {
+    <h3>Computer's Hand (@GameService.ComputerHand.Count cards)</h3>
+    <ul class="list-unstyled d-flex flex-wrap">
+        @foreach (var card in GameService.ComputerHand)
+        {
+            <li class="me-2 mb-2" style="display:inline-block;">
+                <UnoCardDisplay Card="null" />
+            </li>
+        }
+    </ul>
+
+    <h4 class="my-3">
+        Top Card: <span class="text-info"><UnoCardDisplay Card="GameService.TopCard" /></span>
+    </h4>
+
     <h3>Your Hand</h3>
     <ul class="list-unstyled d-flex flex-wrap">
         @foreach (var card in GameService.GetSortedPlayerHand())
@@ -44,22 +64,22 @@ else
             {
                 if (color != UnoColor.Wild)
                 {
-                    <button class="btn btn-outline-dark ms-1" @onclick="() => ConfirmWildColor(pendingWildCard, color)">@color</button>
+                    var bgColor = color switch
+                    {
+                        UnoColor.Red => "#dc3545", // Bootstrap red
+                        UnoColor.Yellow => "#ffc107", // Bootstrap yellow
+                        UnoColor.Green => "#198754", // Bootstrap green
+                        UnoColor.Blue => "#0d6efd", // Bootstrap blue
+                        _ => "#6c757d" // fallback gray
+                    };
+                    // Improve contrast for yellow
+                    var textColor = color == UnoColor.Yellow ? "black" : "white";
+                    <button class="btn btn-outline-dark ms-1" style="background-color: @bgColor; color: @textColor; border-color: @bgColor;" @onclick="() => ConfirmWildColor(pendingWildCard, color)">@color</button>
                 }
             }
         </div>
     }
     <button class="btn btn-secondary mb-2" @onclick="DrawCard" disabled="@(!GameService.PlayerTurn)">Draw Card</button>
-    <h3>Computer's Hand (@GameService.ComputerHand.Count cards)</h3>
-    <ul class="list-unstyled d-flex flex-wrap">
-        @foreach (var card in GameService.ComputerHand)
-        {
-            <li class="me-2 mb-2" style="display:inline-block;">
-                <UnoCardDisplay Card="null" />
-            </li>
-        }
-    </ul>
-    <h4>Top Card: <span class="text-info"><UnoCardDisplay Card="GameService.TopCard" /></span></h4>
     <div class="alert alert-info">@GameService.Message</div>
 }
 
@@ -84,7 +104,35 @@ else
     }
     async Task DrawCard()
     {
-        GameService.PlayerDrawCards(1);
-        await InvokeAsync(StateHasChanged);
+        if (GameService.PlayerTurn)
+        {
+            int handCountBefore = GameService.PlayerHand.Count;
+            GameService.PlayerDrawCards(1);
+            // Try to play the drawn card automatically if possible
+            var newCard = GameService.PlayerHand.LastOrDefault();
+            if (newCard != null && GameService.CanPlay(newCard))
+            {
+                // If the drawn card is playable, prompt for wild or play it
+                if (newCard.Color == UnoColor.Wild && (newCard.Value == UnoValue.Wild || newCard.Value == UnoValue.WildDrawFour))
+                {
+                    PromptWildColor(newCard);
+                }
+                else
+                {
+                    PlayCard(newCard);
+                }
+            }
+            else
+            {
+                // End turn if not playable
+                GameService.PlayerTurn = false;
+                GameService.ComputerMove();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        else
+        {
+            await InvokeAsync(StateHasChanged);
+        }
     }
 }

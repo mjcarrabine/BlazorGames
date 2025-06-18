@@ -44,7 +44,23 @@ namespace CardGamesLibrary.Shared
                 PlayerHand.Add(DrawPile.Pop());
                 ComputerHand.Add(DrawPile.Pop());
             }
-            DiscardPile.Push(DrawPile.Pop());
+            // Ensure the first top card is not an action or wild card
+            UnoCard firstCard;
+            do
+            {
+                firstCard = DrawPile.Pop();
+                // If not allowed, put it at the bottom and try again
+                if (firstCard.Value == UnoValue.Skip || firstCard.Value == UnoValue.Reverse ||
+                    firstCard.Value == UnoValue.DrawTwo || firstCard.Value == UnoValue.Wild || firstCard.Value == UnoValue.WildDrawFour)
+                {
+                    DrawPile = new Stack<UnoCard>(DrawPile.Reverse().Append(firstCard));
+                }
+                else
+                {
+                    break;
+                }
+            } while (true);
+            DiscardPile.Push(firstCard);
             GameStarted = true;
         }
 
@@ -78,19 +94,52 @@ namespace CardGamesLibrary.Shared
             }
             PlayerHand.Remove(card);
             DiscardPile.Push(card);
+            if (PlayerHand.Count == 0)
+            {
+                Message = "You win!";
+                GameStarted = false;
+                return;
+            }
             if (card.Color == UnoColor.Wild)
             {
-                if (chosenColor == null)
+                if (card.Value == UnoValue.Wild || card.Value == UnoValue.WildDrawFour)
                 {
-                    PendingWildColor = null;
-                    AwaitingWildColor = true;
-                    Message = "Select a color for your Wild card.";
+                    if (chosenColor == null)
+                    {
+                        PendingWildColor = null;
+                        AwaitingWildColor = true;
+                        Message = "Select a color for your Wild card.";
+                        return;
+                    }
+                    PendingWildColor = chosenColor;
+                    activeWildColor = chosenColor;
+                    AwaitingWildColor = false;
+                    Message = $"You played {card} and chose {chosenColor}.";
+                    if (card.Value == UnoValue.WildDrawFour)
+                    {
+                        Message += " The next player must draw 4 cards.";
+                        PlayerTurn = false;
+                        ComputerDrawCards(4);
+                        if (ComputerHand.Count == 0)
+                        {
+                            Message = "Computer wins!";
+                            GameStarted = false;
+                            return;
+                        }
+                        ComputerMove();
+                        return;
+                    }
+                    // For normal Wild, after color selection, just pass turn
+                    PlayerTurn = false;
+                    if (ComputerHand.Count == 0)
+                    {
+                        Message = "Computer wins!";
+                        GameStarted = false;
+                        return;
+                    }
+                    ComputerMove();
                     return;
                 }
-                PendingWildColor = chosenColor;
-                activeWildColor = chosenColor;
-                AwaitingWildColor = false;
-                Message = $"You played {card} and chose {chosenColor}.";
             }
             else
             {
@@ -103,8 +152,7 @@ namespace CardGamesLibrary.Shared
             if (card.Value == UnoValue.Skip)
             {
                 Message += " The next player's turn is skipped.";
-                PlayerTurn = false;
-                ComputerMove();
+                PlayerTurn = true;
                 return;
             }
             // Handle Draw Two card
@@ -113,10 +161,22 @@ namespace CardGamesLibrary.Shared
                 Message += " The next player must draw 2 cards.";
                 PlayerTurn = false;
                 ComputerDrawCards(2);
+                if (ComputerHand.Count == 0)
+                {
+                    Message = "Computer wins!";
+                    GameStarted = false;
+                    return;
+                }
                 ComputerMove();
                 return;
             }
             PlayerTurn = false;
+            if (ComputerHand.Count == 0)
+            {
+                Message = "Computer wins!";
+                GameStarted = false;
+                return;
+            }
             ComputerMove();
         }
 
@@ -142,17 +202,42 @@ namespace CardGamesLibrary.Shared
         public bool AwaitingWildColor { get; set; } = false;
         public void ComputerMove()
         {
+            if (ComputerHand.Count == 0)
+            {
+                Message = "Computer wins!";
+                GameStarted = false;
+                return;
+            }
             var playable = ComputerHand.FirstOrDefault(CanPlay);
             if (playable != null)
             {
                 ComputerHand.Remove(playable);
                 DiscardPile.Push(playable);
+                if (ComputerHand.Count == 0)
+                {
+                    Message = "Computer wins!";
+                    GameStarted = false;
+                    return;
+                }
                 if (playable.Color == UnoColor.Wild)
                 {
                     var color = GetMostCommonColor(ComputerHand);
                     PendingWildColor = color;
                     activeWildColor = color;
                     Message += $" Computer played {playable} and chose {color}.";
+                    if (playable.Value == UnoValue.WildDrawFour)
+                    {
+                        Message += " You must draw 4 cards.";
+                        PlayerDrawCards(4);
+                        PlayerTurn = true;
+                        // Check win after forced draw
+                        if (ComputerHand.Count == 0)
+                        {
+                            Message = "Computer wins!";
+                            GameStarted = false;
+                        }
+                        return;
+                    }
                 }
                 else
                 {
@@ -164,7 +249,16 @@ namespace CardGamesLibrary.Shared
                 if (playable.Value == UnoValue.Skip)
                 {
                     Message += " Your turn is skipped.";
-                    PlayerTurn = true;
+                    // In a two-player game, skip means computer gets another turn
+                    PlayerTurn = false;
+                    // Check win after skip
+                    if (ComputerHand.Count == 0)
+                    {
+                        Message = "Computer wins!";
+                        GameStarted = false;
+                        return;
+                    }
+                    ComputerMove();
                     return;
                 }
                 // Handle Draw Two card for computer
@@ -173,9 +267,21 @@ namespace CardGamesLibrary.Shared
                     Message += " You must draw 2 cards.";
                     PlayerDrawCards(2);
                     PlayerTurn = true;
+                    // Check win after forced draw
+                    if (ComputerHand.Count == 0)
+                    {
+                        Message = "Computer wins!";
+                        GameStarted = false;
+                    }
                     return;
                 }
                 PlayerTurn = true;
+                // Check win at end of turn
+                if (ComputerHand.Count == 0)
+                {
+                    Message = "Computer wins!";
+                    GameStarted = false;
+                }
                 return;
             }
             else if (DrawPile.Count > 0)
@@ -187,6 +293,12 @@ namespace CardGamesLibrary.Shared
                 {
                     ComputerHand.Remove(drawnCard);
                     DiscardPile.Push(drawnCard);
+                    if (ComputerHand.Count == 0)
+                    {
+                        Message = "Computer wins!";
+                        GameStarted = false;
+                        return;
+                    }
                     Message += $" Computer played {drawnCard}.";
                     if (drawnCard.Color == UnoColor.Wild)
                     {
@@ -194,6 +306,19 @@ namespace CardGamesLibrary.Shared
                         PendingWildColor = color;
                         activeWildColor = color;
                         Message += $" Computer chose {color}.";
+                        if (drawnCard.Value == UnoValue.WildDrawFour)
+                        {
+                            Message += " You must draw 4 cards.";
+                            PlayerDrawCards(4);
+                            PlayerTurn = true;
+                            // Check win after forced draw
+                            if (ComputerHand.Count == 0)
+                            {
+                                Message = "Computer wins!";
+                                GameStarted = false;
+                            }
+                            return;
+                        }
                     }
                     else
                     {
@@ -204,7 +329,15 @@ namespace CardGamesLibrary.Shared
                     if (drawnCard.Value == UnoValue.Skip)
                     {
                         Message += " Your turn is skipped.";
-                        PlayerTurn = true;
+                        PlayerTurn = false;
+                        // Check win after skip
+                        if (ComputerHand.Count == 0)
+                        {
+                            Message = "Computer wins!";
+                            GameStarted = false;
+                            return;
+                        }
+                        ComputerMove();
                         return;
                     }
                     // Handle Draw Two card for computer
@@ -213,13 +346,31 @@ namespace CardGamesLibrary.Shared
                         Message += " You must draw 2 cards.";
                         PlayerDrawCards(2);
                         PlayerTurn = true;
+                        // Check win after forced draw
+                        if (ComputerHand.Count == 0)
+                        {
+                            Message = "Computer wins!";
+                            GameStarted = false;
+                        }
                         return;
                     }
                     PlayerTurn = true;
+                    // Check win at end of turn
+                    if (ComputerHand.Count == 0)
+                    {
+                        Message = "Computer wins!";
+                        GameStarted = false;
+                    }
                     return;
                 }
             }
             PlayerTurn = true;
+            // Check win at end of turn if no playable card
+            if (ComputerHand.Count == 0)
+            {
+                Message = "Computer wins!";
+                GameStarted = false;
+            }
         }
         public void PlayerDrawCards(int count)
         {
