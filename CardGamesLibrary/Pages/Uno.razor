@@ -6,8 +6,10 @@
 
 <PageTitle>Uno</PageTitle>
 
-<h1>Uno</h1>
-<a href="https://service.mattel.com/instruction_sheets/42001pr.pdf" target="_blank" rel="noopener noreferrer">Instructions</a>
+<div style="display: flex; align-items: center; gap: 1rem;">
+    <h1 style="margin: 0;">Uno</h1>
+    <a href="https://service.mattel.com/instruction_sheets/42001pr.pdf" target="_blank" rel="noopener noreferrer">Instructions</a>
+</div>
 
 @if (!GameService.GameStarted && !string.IsNullOrWhiteSpace(GameService.Message) && (GameService.Message.Contains("win") || GameService.Message.Contains("Win")))
 {
