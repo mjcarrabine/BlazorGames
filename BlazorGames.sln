@@ -1,0 +1,55 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36203.30
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGamesClient", "CardGamesClient\CardGamesClient.csproj", "{F7C42BAE-F008-4853-8224-9D6C46C63FB7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CardGamesClient", "CardGamesClient", "{B59A882F-E7D5-BAFA-CB92-F1751CD97FEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGamesLibrary", "CardGamesLibrary\CardGamesLibrary.csproj", "{0B2590B7-339B-485C-82BE-D73FF4C29F1A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Debug|x64.Build.0 = Debug|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Debug|x86.Build.0 = Debug|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Release|x64.ActiveCfg = Release|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Release|x64.Build.0 = Release|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7C42BAE-F008-4853-8224-9D6C46C63FB7}.Release|x86.Build.0 = Release|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Debug|x64.Build.0 = Debug|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Debug|x86.Build.0 = Debug|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Release|x64.ActiveCfg = Release|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Release|x64.Build.0 = Release|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Release|x86.ActiveCfg = Release|Any CPU
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0B2590B7-339B-485C-82BE-D73FF4C29F1A} = {B59A882F-E7D5-BAFA-CB92-F1751CD97FEB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D3E7D11-D26B-4AFD-B466-DB6761C19E04}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,532 @@
+@page "/solitaire"
+
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using CardGamesLibrary.Shared
+@inject SolitaireGameService GameService
+
+<PageTitle>Solitaire</PageTitle>
+
+<h1>Solitaire</h1>
+
+@if (!GameService.GameStarted)
+{
+    <div class="mb-3">
+        <label for="drawCount">Draw Count:</label>
+        <select id="drawCount" class="form-select w-auto d-inline-block ms-2 me-3" @bind="drawCount">
+            <option value="1">Draw 1</option>
+            <option value="3">Draw 3</option>
+        </select>
+        <label for="maxStockRecycles">Stock Recycles:</label>
+        <select id="maxStockRecycles" class="form-select w-auto d-inline-block ms-2" @bind="maxStockRecycles">
+            <option value="-1">Unlimited</option>
+            <option value="0">None</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+        <button class="btn btn-primary ms-3" @onclick="StartGameWithRules">Start Game</button>
+    </div>
+}
+else
+{
+    <div class="row mb-2">
+        <div class="col-auto">
+            <span class="fw-bold">Moves:</span> @GameService.MoveCount
+        </div>
+        <div class="col-auto">
+            <span class="fw-bold">Time:</span> @TimeSpan.FromSeconds(GameService.ElapsedSeconds).ToString(@"mm\:ss")
+        </div>
+        <div class="col-auto">
+            <span class="fw-bold">Score:</span> @GameService.Score
+        </div>
+    </div>
+    <h3>Solitaire Tableau</h3>
+    <div class="row mb-3">
+        <div class="col-auto">
+            <h5>Stock</h5>
+            <div style="min-width:10rem; min-height:5rem; max-height:5rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
+                @if (GameService.Stock.Count > 0)
+                {
+                    <span @onclick="GameService.DrawFromStock" style="cursor:pointer; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal; font-size:2rem;">🂠</span>
+                }
+                else if (GameService.Waste.Count > 0 && (GameService.MaxStockRecycles == -1 || GameService.StockRecycleCount < GameService.MaxStockRecycles))
+                {
+                    <button class="btn btn-outline-primary btn-sm" @onclick="GameService.ResetStockFromWaste">Reset Stock</button>
+                }
+                else
+                {
+                    <span style="color:gray; font-size:2rem; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;">🂠</span>
+                }
+            </div>
+            <div style="text-align:center; font-size:1rem; color:#333; margin-top:0.2rem;">
+                Cards left: @GameService.Stock.Count
+            </div>
+            <div style="text-align:center; margin-top:0.2rem;">
+                <button class="btn btn-primary btn-sm" @onclick="GameService.DrawFromStock" disabled="@(GameService.Stock.Count == 0)">Draw</button>
+            </div>
+        </div>
+        <div class="col-auto">
+            <h5>Waste</h5>
+            <div style="min-width:10rem; min-height:5rem; max-height:5rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
+                @if (GameService.Waste.Count > 0)
+                {
+                    var wasteDisplay = GameService.GetWasteDisplay();
+                    @foreach (var card in wasteDisplay)
+                    {
+                        <span @ondragstart="OnWasteDragStart"
+                              draggable="true"
+                              style="cursor:move; min-width:2.5rem; display:inline-block; text-align:center; height:100%; line-height:normal; font-size:2rem; margin-right:0.2rem;"
+                              @ontouchstart="OnTouchStartWaste"
+                              @ondblclick="@(() => OnWasteCardDoubleClick(card))">
+                            @((MarkupString)card.ToString())
+                        </span>
+                    }
+                }
+                else
+                {
+                    <span style="color:gray; font-size:2rem; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;">🂠</span>
+                }
+            </div>
+            @if (GameService.Waste.Count > 0 && CanMoveWasteToAnyFoundation())
+            {
+                <div style="text-align:center; margin-top:0.2rem;">
+                    <button class="btn btn-outline-success btn-sm bg-success text-white" @onclick="MoveWasteToFirstAvailableFoundation">To Foundation</button>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="row mb-2">
+        @for (int f = 0; f < GameService.Foundations.Count; f++)
+        {
+            var foundationIndex = f;
+            <div class="col-auto"
+                 style="min-width:11rem; max-width:11rem;"
+                 @ondragover:preventDefault
+                 @ondragover="(e => OnDragOverFoundation(e, foundationIndex))"
+                 @ondrop="(e => OnDropFoundation(e, foundationIndex))"
+                 @ontouchend="@(() => OnTouchEndFoundation(foundationIndex))">
+                <h6>Foundation @(foundationIndex + 1)</h6>
+                <div style="min-width:10rem; min-height:2.5rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center;">
+                    @if (GameService.Foundations[foundationIndex].Count > 0)
+                    {
+                        <span style="font-size:2rem; min-width:10rem; min-height:5rem; max-height:5rem; display:inline-flex; align-items:center; justify-content:center; text-align:center;">@((MarkupString)GameService.Foundations[foundationIndex].Last().ToString())</span>
+                    }
+                    else
+                    {
+                        <span style="color:gray; font-size:2rem; min-width:10rem; min-height:5rem; max-height:5rem; display:inline-flex; align-items:center; justify-content:center; text-align:center;">🂠</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <div class="row" style="flex-wrap:nowrap; overflow-x:auto;">
+        @for (int i = 0; i < GameService.Tableau.Count; i++)
+        {
+            var pile = GameService.Tableau[i];
+            var pileIndex = i; // Capture for closure
+            bool showMoveToTableauButtons = false;
+            if (selectedPileIndex == pileIndex && selectedCardIndex != null)
+            {
+                showMoveToTableauButtons = true;
+            }
+            <div class="col-auto"
+                 style="padding-right:0.5rem; min-width:11rem; max-width:11rem;"
+                 @ondragover:preventDefault
+                 @ondragover="(e => OnDragOverTableau(e, pileIndex))"
+                 @ondrop="(e => OnDropTableau(e, pileIndex))"
+                 @ontouchend="@(() => OnTouchEndTableau(pileIndex))">
+                <h5>Pile @(i + 1)</h5>
+                @for (int j = 0; j < pile.Count; j++)
+                {
+                    var cardIndex = j; // Capture for closure
+                    bool isTop = j == pile.Count - 1;
+                    var (card, faceUp) = pile[j];
+                    <div style="margin-bottom:0.2rem;">
+                        <span style="min-width:10rem; min-height:@(isTop ? "6rem" : "4rem"); max-height:@(isTop ? "6rem" : "4rem"); border:1px solid #ccc; border-radius:0.5rem; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; background:white; width:10rem;">
+                        @if (faceUp)
+                        {
+                            <span @ondragstart="@((e) => OnDragStart(pileIndex, cardIndex))"
+                                  draggable="true"
+                                  style="cursor:move; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;"
+                                  @ontouchstart="@(() => OnTouchStartTableau(pileIndex, cardIndex))"
+                                  @onclick="@(() => OnCardClick(pileIndex, cardIndex))"
+                                  @ondblclick="@(() => OnCardDoubleClick(pileIndex, cardIndex))">
+                                @((MarkupString)card.ToString())
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="color:gray; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;">🂠</span>
+                        }
+                        </span>
+                        @if (isTop && faceUp)
+                        {
+                            bool canMoveToAnyFoundation = false;
+                            int? targetFoundation = null;
+                            for (int f = 0; f < GameService.Foundations.Count; f++)
+                            {
+                                var foundation = GameService.Foundations[f];
+                                var canMove = GameService.CanMoveToFoundation(pileIndex, f);
+                                if (canMove)
+                                {
+                                    canMoveToAnyFoundation = true;
+                                    targetFoundation = f;
+                                    break;
+                                }
+                            }
+                            if (canMoveToAnyFoundation)
+                            {
+                                <button class="btn btn-outline-success btn-sm ms-2 bg-success text-white" @onclick="@(() => MoveToFirstAvailableFoundation(pileIndex))">To Foundation</button>
+                            }
+                        }
+                    </div>
+                }
+                <div class="mt-2">
+                    @if (showMoveToTableauButtons)
+                    {
+                        @for (int t = 0; t < GameService.Tableau.Count; t++)
+                        {
+                            if (t == pileIndex) { continue; }
+                            var destPileIndex = t; // Capture for closure
+                            var pileIndex2 = pileIndex; // Capture for closure
+                            if (selectedCardIndex != null && GameService.CanMoveTableauToTableau(pileIndex2, selectedCardIndex.Value, destPileIndex))
+                            {
+                                <button class="btn btn-outline-success btn-sm me-1 mb-1 bg-success text-white" @onclick="@(() => MoveTableauToTableauUI(pileIndex2, destPileIndex))">Move to Pile @(destPileIndex + 1)</button>
+                            }
+                        }
+                    }
+                    @if (GameService.Waste.Count > 0)
+                    {
+                        bool canMoveWaste = GameService.CanMoveWasteToTableau(pileIndex);
+                        if (canMoveWaste)
+                        {
+                            <button class="btn btn-outline-success btn-sm mb-1 bg-success text-white" @onclick="@(() => MoveWasteToTableauUI(pileIndex))">Move Waste Here</button>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <div class="mb-2">
+        <button class="btn btn-warning me-2" @onclick="GameService.Undo" disabled="@(!GameService.CanUndo)">Undo</button>
+        <button class="btn btn-warning me-2" @onclick="GameService.Redo" disabled="@(!GameService.CanRedo)">Redo</button>
+        <button class="btn btn-secondary" @onclick="GameService.NewGame">New Game</button>
+    </div>
+    @if (GameService.IsWin)
+    {
+        <div class="alert alert-success fw-bold fs-4">Congratulations! You won!</div>
+    }
+    @if (GameService.GameStarted && !GameService.IsWin && !GameService.HasAnyLegalMove())
+    {
+        <div class="alert alert-danger fw-bold fs-5 mt-2">No more legal moves! (Stalemate)</div>
+    }
+}
+
+@code {
+    // All logic is now managed by SolitaireGameService
+
+    protected override void OnInitialized()
+    {
+        GameService.OnStateChanged += OnGameStateChanged;
+    }
+
+    private void OnGameStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        GameService.OnStateChanged -= OnGameStateChanged;
+    }
+
+    private void MoveToFoundationAndUpdate(int pileIndex, int foundationIndex)
+    {
+        Console.WriteLine($"Clicked: pile {pileIndex}, foundation {foundationIndex}");
+        GameService.MoveToFoundation(pileIndex, foundationIndex);
+        StateHasChanged();
+    }
+
+    private int? selectedCardIndex = null;
+    private int? selectedPileIndex = null;
+    private bool isWasteDragging = false;
+    private bool isTableauDragging = false;
+    private int? touchSourcePile = null;
+    private int? touchSourceCard = null;
+    private bool touchIsWaste = false;
+
+    private int drawCount = 1;
+    private int maxStockRecycles = -1;
+
+    private void StartGameWithRules()
+    {
+        GameService.SetRules(drawCount, maxStockRecycles);
+        GameService.StartGame();
+    }
+
+    private void OnRuleSelectorStartGame((int DrawCount, int MaxStockRecycles) rules)
+    {
+        drawCount = rules.DrawCount;
+        maxStockRecycles = rules.MaxStockRecycles;
+        StartGameWithRules();
+    }
+
+    private void OnDragStart(int pileIndex, int cardIndex)
+    {
+        selectedPileIndex = pileIndex;
+        selectedCardIndex = cardIndex;
+        isWasteDragging = false;
+        isTableauDragging = true;
+    }
+
+    private void OnWasteDragStart(DragEventArgs e)
+    {
+        isWasteDragging = true;
+        selectedPileIndex = null;
+        selectedCardIndex = null;
+    }
+
+    private void OnTouchStartWaste()
+    {
+        touchIsWaste = true;
+        touchSourcePile = null;
+        touchSourceCard = null;
+    }
+
+    private void OnTouchStartTableau(int pileIndex, int cardIndex)
+    {
+        touchIsWaste = false;
+        touchSourcePile = pileIndex;
+        touchSourceCard = cardIndex;
+    }
+
+    private void OnDragOverTableau(DragEventArgs e, int toPile)
+    {
+        // Allow drop if valid move from tableau or waste
+        if ((isWasteDragging && GameService.CanMoveWasteToTableau(toPile)) ||
+            (!isWasteDragging && selectedPileIndex != null && selectedCardIndex != null &&
+             GameService.CanMoveTableauToTableau(selectedPileIndex.Value, selectedCardIndex.Value, toPile)))
+        {
+            // e.PreventDefault(); handled by @ondragover:preventDefault
+        }
+    }
+
+    private void OnDropTableau(DragEventArgs e, int toPile)
+    {
+        if (isWasteDragging)
+        {
+            if (GameService.CanMoveWasteToTableau(toPile))
+            {
+                GameService.MoveWasteToTableau(toPile);
+                isWasteDragging = false;
+                StateHasChanged();
+            }
+        }
+        else if (selectedPileIndex != null && selectedCardIndex != null)
+        {
+            if (GameService.CanMoveTableauToTableau(selectedPileIndex.Value, selectedCardIndex.Value, toPile))
+            {
+                GameService.MoveTableauToTableau(selectedPileIndex.Value, selectedCardIndex.Value, toPile);
+                selectedPileIndex = null;
+                selectedCardIndex = null;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void OnTouchEndTableau(int toPile)
+    {
+        if (touchIsWaste)
+        {
+            if (GameService.CanMoveWasteToTableau(toPile))
+            {
+                GameService.MoveWasteToTableau(toPile);
+                StateHasChanged();
+            }
+        }
+        else if (touchSourcePile != null && touchSourceCard != null)
+        {
+            if (GameService.CanMoveTableauToTableau(touchSourcePile.Value, touchSourceCard.Value, toPile))
+            {
+                GameService.MoveTableauToTableau(touchSourcePile.Value, touchSourceCard.Value, toPile);
+                StateHasChanged();
+            }
+        }
+        touchIsWaste = false;
+        touchSourcePile = null;
+        touchSourceCard = null;
+    }
+
+    private void OnDragOverFoundation(DragEventArgs e, int foundationIndex)
+    {
+        // Allow drop if valid move from waste or tableau
+        if ((isWasteDragging && GameService.CanMoveWasteToFoundation(foundationIndex)) ||
+            (isTableauDragging && selectedPileIndex != null && selectedCardIndex != null &&
+             GameService.CanMoveToFoundation(selectedPileIndex.Value, foundationIndex)))
+        {
+            // e.PreventDefault(); handled by @ondragover:preventDefault
+        }
+    }
+
+    private void OnDropFoundation(DragEventArgs e, int foundationIndex)
+    {
+        if (isWasteDragging && GameService.CanMoveWasteToFoundation(foundationIndex))
+        {
+            GameService.MoveWasteToFoundation(foundationIndex);
+            isWasteDragging = false;
+            StateHasChanged();
+        }
+        else if (isTableauDragging && selectedPileIndex != null && selectedCardIndex != null &&
+                 GameService.CanMoveToFoundation(selectedPileIndex.Value, foundationIndex))
+        {
+            GameService.MoveToFoundation(selectedPileIndex.Value, foundationIndex);
+            selectedPileIndex = null;
+            selectedCardIndex = null;
+            isTableauDragging = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnTouchEndFoundation(int foundationIndex)
+    {
+        if (touchIsWaste)
+        {
+            if (GameService.CanMoveWasteToFoundation(foundationIndex))
+            {
+                GameService.MoveWasteToFoundation(foundationIndex);
+                StateHasChanged();
+            }
+        }
+        else if (touchSourcePile != null && touchSourceCard != null)
+        {
+            if (GameService.CanMoveToFoundation(touchSourcePile.Value, foundationIndex))
+            {
+                GameService.MoveToFoundation(touchSourcePile.Value, foundationIndex);
+                StateHasChanged();
+            }
+        }
+        touchIsWaste = false;
+        touchSourcePile = null;
+        touchSourceCard = null;
+    }
+
+    private bool CanMoveTableauToTableauUI(int fromPile, int toPile)
+    {
+        if (selectedPileIndex != fromPile || selectedCardIndex == null)
+            return false;
+        return GameService.CanMoveTableauToTableau(fromPile, selectedCardIndex.Value, toPile);
+    }
+
+    private void MoveTableauToTableauUI(int fromPile, int toPile)
+    {
+        if (selectedCardIndex != null && selectedPileIndex == fromPile)
+        {
+            GameService.MoveTableauToTableau(fromPile, selectedCardIndex.Value, toPile);
+            selectedCardIndex = null;
+            selectedPileIndex = null;
+            StateHasChanged();
+        }
+    }
+
+    private void MoveWasteToTableauUI(int tableauIndex)
+    {
+        GameService.MoveWasteToTableau(tableauIndex);
+        StateHasChanged();
+    }
+
+    private void MoveWasteToFoundationUI(int foundationIndex)
+    {
+        GameService.MoveWasteToFoundation(foundationIndex);
+        StateHasChanged();
+    }
+
+    private void MoveToFirstAvailableFoundation(int pileIndex)
+    {
+        for (int f = 0; f < GameService.Foundations.Count; f++)
+        {
+            if (GameService.CanMoveToFoundation(pileIndex, f))
+            {
+                GameService.MoveToFoundation(pileIndex, f);
+                StateHasChanged();
+                break;
+            }
+        }
+    }
+
+    private void MoveWasteToFirstAvailableFoundation()
+    {
+        for (int f = 0; f < GameService.Foundations.Count; f++)
+        {
+            if (GameService.CanMoveWasteToFoundation(f))
+            {
+                GameService.MoveWasteToFoundation(f);
+                StateHasChanged();
+                break;
+            }
+        }
+    }
+
+    private void OnCardClick(int pileIndex, int cardIndex)
+    {
+        if (selectedPileIndex == pileIndex && selectedCardIndex == cardIndex)
+        {
+            // Deselect if already selected
+            selectedPileIndex = null;
+            selectedCardIndex = null;
+        }
+        else
+        {
+            selectedPileIndex = pileIndex;
+            selectedCardIndex = cardIndex;
+        }
+    }
+
+    private void OnCardDoubleClick(int pileIndex, int cardIndex)
+    {
+        // Only allow double-click on top, face-up card
+        var pile = GameService.Tableau[pileIndex];
+        if (pile.Count == 0) return;
+        if (cardIndex != pile.Count - 1) return;
+        var (card, faceUp) = pile[cardIndex];
+        if (!faceUp) return;
+        // Try to move to any available foundation
+        for (int f = 0; f < GameService.Foundations.Count; f++)
+        {
+            if (GameService.CanMoveToFoundation(pileIndex, f))
+            {
+                GameService.MoveToFoundation(pileIndex, f);
+                StateHasChanged();
+                break;
+            }
+        }
+    }
+
+    private void OnWasteCardDoubleClick(Card card)
+    {
+        // Try to move the waste card to any available foundation
+        // Only allow if this is the top card in the waste pile
+        if (GameService.Waste.Count == 0 || !GameService.Waste.Any(c => c == card)) return;
+        // Only allow double-click on the top card (last in list)
+        if (!EqualityComparer<Card>.Default.Equals(GameService.Waste.Last(), card)) return;
+        for (int f = 0; f < GameService.Foundations.Count; f++)
+        {
+            if (GameService.CanMoveWasteToFoundation(f))
+            {
+                GameService.MoveWasteToFoundation(f);
+                StateHasChanged();
+                break;
+            }
+        }
+    }
+
+    private bool CanMoveWasteToAnyFoundation()
+    {
+        for (int f = 0; f < GameService.Foundations.Count; f++)
+        {
+            if (GameService.CanMoveWasteToFoundation(f))
+                return true;
+        }
+        return false;
+    }
+}

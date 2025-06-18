@@ -1,0 +1,153 @@
+@page "/war"
+@using CardGamesLibrary.Shared
+
+@inject WarGameService WarGame
+
+<h3>War</h3>
+
+<div class="mb-3 row">
+    <div class="col-md-4">
+        <label>Player 1 Name:</label>
+        <input class="form-control" @bind="player1Name" />
+    </div>
+    <div class="col-md-4">
+        <label>Player 2 Name:</label>
+        <input class="form-control" @bind="player2Name" />
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-primary me-2" @onclick="StartGame">Start Game</button>
+        <button class="btn btn-success" @onclick="PlayRound" disabled="@(!CanPlay)">Deal</button>
+    </div>
+</div>
+
+<div class="row mb-2">
+    <div class="col">
+        <h5>@WarGame.Player1Name</h5>
+        <div>Cards: @WarGame.Player1Count</div>
+        <div>
+            @if (WarGame.Player1Card != null)
+            {
+                <CardDisplay Card="WarGame.Player1Card" Highlight="@IsMainRoundWinner(1)" />
+            }
+        </div>
+    </div>
+    <div class="col">
+        <h5>@WarGame.Player2Name</h5>
+        <div>Cards: @WarGame.Player2Count</div>
+        <div>
+            @if (WarGame.Player2Card != null)
+            {
+                <CardDisplay Card="WarGame.Player2Card" Highlight="@IsMainRoundWinner(2)" />
+            }
+        </div>
+    </div>
+</div>
+
+@if (WarGame.IsWarOngoing && WarGame.WarSteps.Count > 0)
+{
+    <div class="mb-2">
+        <h5>War Steps</h5>
+        <ol>
+            @for (int stepIdx = 0; stepIdx < WarGame.WarSteps.Count; stepIdx++)
+            {
+                var step = WarGame.WarSteps[stepIdx];
+                bool isFinalStep = stepIdx == WarGame.WarSteps.Count - 1;
+                <li>
+                    <span>Player 1: 
+                        @for (int i = 0; i < step.Player1Cards.Count; i++)
+                        {
+                            bool highlight = isFinalStep && step.Player1FaceUp[i] && IsWarWinner(1);
+                            if (step.Player1Cards[i] != null && step.Player1FaceUp[i])
+                            {
+                                <CardDisplay Card="step.Player1Cards[i]" Highlight="@highlight" />
+                            }
+                            else if (step.Player1Cards[i] != null)
+                            {
+                                <CardDisplay Card="null" />
+                            }
+                        }
+                    </span>
+                    <span> | Player 2: 
+                        @for (int i = 0; i < step.Player2Cards.Count; i++)
+                        {
+                            bool highlight = isFinalStep && step.Player2FaceUp[i] && IsWarWinner(2);
+                            if (step.Player2Cards[i] != null && step.Player2FaceUp[i])
+                            {
+                                <CardDisplay Card="step.Player2Cards[i]" Highlight="@highlight" />
+                            }
+                            else if (step.Player2Cards[i] != null)
+                            {
+                                <CardDisplay Card="null" />
+                            }
+                        }
+                    </span>
+                </li>
+            }
+        </ol>
+    </div>
+}
+
+<div class="alert alert-info">@WarGame.Status</div>
+
+@code {
+    private string player1Name = "Captain Underpants";
+    private string player2Name = "Dogman";
+
+    protected override void OnInitialized()
+    {
+        player1Name = WarGame.Player1Name = "Captain Underpants";
+        player2Name = WarGame.Player2Name = "Dogman";
+        WarGame.StartGame();
+    }
+
+    private void StartGame()
+    {
+        WarGame.Player1Name = player1Name;
+        WarGame.Player2Name = player2Name;
+        WarGame.StartGame();
+        StateHasChanged();
+    }
+
+    private void PlayRound()
+    {
+        WarGame.PlayRound();
+        StateHasChanged();
+    }
+
+    private bool CanPlay => !WarGame.IsGameOver() && WarGame.Player1Count > 0 && WarGame.Player2Count > 0;
+
+    private string RenderCardDisplay(Card c)
+    {
+        // Render the CardDisplay component as HTML for war steps
+        // This is a workaround for inline rendering in war steps
+        return $"<span class='card-face {(c.Suit == Suit.Hearts || c.Suit == Suit.Diamonds ? "red-suit" : "black-suit")}'><span class='card-rank'>{(((int)c.Rank >= 2 && (int)c.Rank <= 10) ? ((int)c.Rank).ToString() : c.Rank.ToString())}</span><span class='card-suit'>{(c.Suit == Suit.Clubs ? "♣" : c.Suit == Suit.Diamonds ? "♦" : c.Suit == Suit.Hearts ? "♥" : c.Suit == Suit.Spades ? "♠" : c.Suit.ToString())}</span></span>";
+    }
+
+    private bool IsMainRoundWinner(int player)
+    {
+        if (WarGame.Player1Card == null || WarGame.Player2Card == null)
+            return false;
+        if ((int)WarGame.Player1Card.Rank > (int)WarGame.Player2Card.Rank)
+            return player == 1;
+        if ((int)WarGame.Player2Card.Rank > (int)WarGame.Player1Card.Rank)
+            return player == 2;
+        return false;
+    }
+    private bool IsWarWinner(int player)
+    {
+        // Only highlight in the final war step, for the winner
+        if (!WarGame.IsWarOngoing || WarGame.WarSteps.Count == 0)
+            return false;
+        var lastStep = WarGame.WarSteps.Last();
+        // Find the last face-up card for each player
+        Card? p1 = null, p2 = null;
+        for (int i = 0; i < lastStep.Player1Cards.Count; i++)
+            if (lastStep.Player1FaceUp[i]) p1 = lastStep.Player1Cards[i];
+        for (int i = 0; i < lastStep.Player2Cards.Count; i++)
+            if (lastStep.Player2FaceUp[i]) p2 = lastStep.Player2Cards[i];
+        if (p1 == null || p2 == null) return false;
+        if ((int)p1.Rank > (int)p2.Rank) return player == 1;
+        if ((int)p2.Rank > (int)p1.Rank) return player == 2;
+        return false;
+    }
+}

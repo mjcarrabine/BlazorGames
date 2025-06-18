@@ -1,0 +1,26 @@
+@using CardGamesLibrary.Shared
+@inherits OwningComponentBase
+
+@if (Card == null)
+{
+    <span></span>
+}
+else if (IsFaceUp)
+{
+    <span style="color:@(IsRedSuit(Card) ? "red" : "black")">@Card.ToString()</span>
+}
+else
+{
+    <span class="text-muted">Face Down</span>
+}
+
+@code {
+    [Parameter]
+    public Card? Card { get; set; }
+
+    [Parameter]
+    public bool IsFaceUp { get; set; }
+
+    private static bool IsRedSuit(Card card)
+        => card.Suit.ToString() == "Hearts" || card.Suit.ToString() == "Diamonds";
+}

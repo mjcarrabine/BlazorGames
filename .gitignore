@@ -1,0 +1,46 @@
+# Ignore build results
+bin/
+obj/
+Debug/
+debug/
+Release/
+release/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code settings
+.vscode/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Logs
+*.log
+
+# NuGet packages
+*.nupkg
+packages/
+*.snupkg
+
+# Build results
+*.dll
+*.exe
+*.app
+*.pdb
+
+# Others
+*.cache
+*.dbmdl
+*.bak
+*.tmp
+
+# Rider
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

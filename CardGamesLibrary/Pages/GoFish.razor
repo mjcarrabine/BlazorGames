@@ -1,0 +1,234 @@
+@page "/gofish"
+@using CardGamesLibrary.Shared
+
+<h3>Go Fish Card Game</h3>
+
+@if (Game == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="StartNewGame">New Game</button>
+    </div>
+    <div class="alert alert-info">@Game.Message</div>
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Your Hand</h5>
+            <div>
+                @foreach (var card in Game.Human.Hand.OrderBy(c => c.Rank))
+                {
+                    var highlight = (card.Equals(LastReceivedCard) && LastReceivedTurn == TurnCounter - 1) ? "highlight-green" : "";
+                    <button class="btn btn-outline-dark go-fish-card @highlight" @onclick="() => RequestCard(card.Rank)" disabled="@(Game.CurrentPlayer != Game.Human || Game.GameOver)">
+                        <span>@card.Rank</span>
+                        <span class="ms-1 @(IsRedSuit(card.Suit) ? "text-danger" : "")">@GetSuitSymbol(card.Suit)</span>
+                    </button>
+                }
+            </div>
+            <div class="mt-2">
+                <strong>Your Books:</strong> @string.Join(", ", Game.Human.Books)
+            </div>
+            <div class="mb-2">
+                @if (RecommendedRank != null)
+                {
+                    <span class="alert alert-secondary p-2">
+                        <strong>Recommended card to ask for:</strong> @RecommendedRank
+                        <br />
+                        <small>
+                            (You have @Game.Human.Hand.Count(c => c.Rank == RecommendedRank) of this rank, which is the most in your hand.)
+                            @if (LastComputerAskedRank == RecommendedRank)
+                            {
+                                <br /><span>(The computer just asked for this rank, so it may have one!)</span>
+                            }
+                            @if (SimulatedOpponentHand.ContainsKey(RecommendedRank.Value) && SimulatedOpponentHand[RecommendedRank.Value] > 0)
+                            {
+                                <br /><span>(Simulation: Opponent is likely to have this card based on their recent asks.)</span>
+                            }
+                        </small>
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h5>Computer's Hand</h5>
+            <div>
+                @for (int i = 0; i < Game.Computer.Hand.Count; i++)
+                {
+                    <span class="go-fish-card card-back" style="user-select:none;">🂠</span>
+                }
+            </div>
+            <div class="mt-2">
+                <strong>Computer's Books:</strong> @string.Join(", ", Game.Computer.Books)
+            </div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <strong>Cards left in deck:</strong> @Game.Deck.Count
+    </div>
+    <div class="mt-3">
+        <strong>Estimated Opponent's Hand:</strong>
+        @if (SimulatedOpponentHand.Count == 0)
+        {
+            <span>Not enough information yet.</span>
+        }
+        else
+        {
+            <ul>
+                @foreach (var kvp in SimulatedOpponentHand.OrderByDescending(kvp => kvp.Value))
+                {
+                    <li>@kvp.Key: @kvp.Value likely</li>
+                }
+            </ul>
+        }
+    </div>
+    <div class="mt-3">
+        <strong>Opponent has asked for these ranks:</strong>
+        @if (OpponentAskedRanks.Count == 0)
+        {
+            <span>None yet.</span>
+        }
+        else
+        {
+            <span>@string.Join(", ", OpponentAskedRanks)</span>
+        }
+    </div>
+}
+
+<style>
+    .go-fish-card {
+        display: inline-block;
+        width: 110px; /* Slightly wider for better fit */
+        height: 90px;
+        font-size: 1.2rem;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #fff;
+        margin: 0.25rem;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 90px;
+        box-shadow: 1px 2px 4px rgba(0,0,0,0.08);
+        transition: box-shadow 0.2s;
+    }
+    .card-back {
+        background: repeating-linear-gradient(135deg, #e0e0e0 0 10px, #bbb 10px 20px);
+        color: #333;
+        font-size: 2rem;
+        border-style: dashed;
+    }
+    .go-fish-card:disabled {
+        background: #eee;
+        color: #aaa;
+    }
+    .go-fish-card .ms-1 {
+        line-height: 1;
+        vertical-align: middle;
+    }
+    .highlight-green {
+        background: #d4edda !important;
+        border-color: #28a745 !important;
+        box-shadow: 0 0 0 0.2rem rgba(40,167,69,.25);
+    }
+</style>
+
+@code {
+    protected GoFishGame? Game;
+    protected Rank? LastComputerAskedRank;
+    protected List<Rank> OpponentAskedRanks = new();
+    private Card? LastReceivedCard;
+    private int LastReceivedTurn = -1;
+    private int TurnCounter = 0;
+
+    protected override void OnInitialized()
+    {
+        Game = new GoFishGame();
+        if (Game != null)
+        {
+            Game.ComputerAsked += (rank) => {
+                LastComputerAskedRank = rank;
+                OpponentAskedRanks.Add(rank);
+            };
+        }
+    }
+
+    protected void StartNewGame()
+    {
+        Game?.StartNewGame();
+        LastComputerAskedRank = null;
+        OpponentAskedRanks.Clear();
+        StateHasChanged();
+    }
+
+    protected void RequestCard(Rank rank)
+    {
+        if (Game != null && !Game.GameOver && Game.CurrentPlayer == Game.Human)
+        {
+            int prevHandCount = Game.Human.Hand.Count;
+            Game.PlayTurn(rank);
+            StateHasChanged();
+            // Find the new card(s) received
+            if (Game.Human.Hand.Count > prevHandCount)
+            {
+                var newCard = Game.Human.Hand
+                    .GroupBy(c => c)
+                    .OrderByDescending(g => g.Count())
+                    .SelectMany(g => g)
+                    .Except(Game.Human.Hand.Take(prevHandCount))
+                    .FirstOrDefault();
+                if (newCard == null)
+                {
+                    // fallback: highlight any card of the requested rank
+                    newCard = Game.Human.Hand.FirstOrDefault(c => c.Rank == rank);
+                }
+                LastReceivedCard = newCard;
+                LastReceivedTurn = TurnCounter;
+            }
+            TurnCounter++;
+        }
+    }
+
+    protected string GetSuitSymbol(Suit suit)
+    {
+        return suit switch
+        {
+            Suit.Hearts => "♥",
+            Suit.Diamonds => "♦",
+            Suit.Clubs => "♣",
+            Suit.Spades => "♠",
+            _ => "?"
+        };
+    }
+
+    protected bool IsRedSuit(Suit suit)
+    {
+        return suit == Suit.Hearts || suit == Suit.Diamonds;
+    }
+
+    protected Dictionary<Rank, int> SimulatedOpponentHand => SimulateOpponentHand();
+
+    private Dictionary<Rank, int> SimulateOpponentHand()
+    {
+        // Estimate the opponent's hand by tracking which ranks the computer has asked for
+        // and which cards have been removed from the deck and your hand.
+        // For simplicity, count the number of times the computer has asked for each rank.
+        // (A more advanced simulation could be implemented.)
+        var dict = new Dictionary<Rank, int>();
+        if (Game == null) return dict;
+        // For now, just count the last asked rank as likely
+        if (LastComputerAskedRank != null)
+        {
+            dict[LastComputerAskedRank.Value] = 1;
+        }
+        return dict;
+    }
+
+    protected Rank? RecommendedRank =>
+        Game?.Human.Hand
+            .GroupBy(c => c.Rank)
+            .OrderByDescending(g => g.Count())
+            .Where(g => Game != null && !Game.Human.Books.Contains(g.Key))
+            .Select(g => g.Key)
+            .OrderByDescending(r => SimulatedOpponentHand.ContainsKey(r) ? SimulatedOpponentHand[r] : 0)
+            .FirstOrDefault();
+}

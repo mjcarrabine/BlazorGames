@@ -1,0 +1,46 @@
+﻿@using System
+@using System.Globalization
+
+@if (Card is null)
+{
+    <div class="card-face card-back">🂠</div>
+}
+else
+{
+    <div class="card-face @GetSuitClass(Card.Suit) @(Highlight ? "card-highlight" : "")">
+        <span class="card-rank">@GetRankSymbol(Card.Rank)</span>
+        <span class="card-suit">@GetSuitSymbol(Card.Suit)</span>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Card? Card { get; set; }
+
+    [Parameter]
+    public bool Highlight { get; set; }
+
+    private string GetSuitSymbol(Suit suit) => suit switch
+    {
+        Suit.Clubs => "♣",
+        Suit.Diamonds => "♦",
+        Suit.Hearts => "♥",
+        Suit.Spades => "♠",
+        _ => "?"
+    };
+
+    private string GetRankSymbol(Rank rank) => rank switch
+    {
+        Rank.Ace => "A",
+        Rank.Jack => "J",
+        Rank.Queen => "Q",
+        Rank.King => "K",
+        _ => ((int)rank).ToString(CultureInfo.InvariantCulture)
+    };
+
+    private string GetSuitClass(Suit suit) => suit switch
+    {
+        Suit.Hearts or Suit.Diamonds => "red-suit",
+        _ => "black-suit"
+    };
+}
