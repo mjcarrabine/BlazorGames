@@ -1,13 +1,22 @@
 @using CardGamesLibrary.Shared
 @inherits Microsoft.AspNetCore.Components.ComponentBase
 
-<div class="uno-card" style="display:inline-block; border:2px solid black; border-radius:10px; width:60px; height:90px; background:@GetColor(); color:white; text-align:center; font-size:1.5em; margin:2px; position:relative;">
-    <span style="display:block; margin-top:30px; font-weight:bold;">@GetDisplayValue()</span>
-</div>
+@if (FaceDown)
+{
+    <div class="uno-card card-back" style="display:inline-flex; flex-direction:column; justify-content:center; align-items:center; border:2px solid black; border-radius:10px; width:60px; height:90px; margin:2px; position:relative;"></div>
+}
+else
+{
+    <div class="uno-card" style="display:inline-flex; flex-direction:column; justify-content:center; align-items:center; border:2px solid black; border-radius:10px; width:60px; height:90px; background:@GetColor(); color:white; text-align:center; font-size:1.5em; margin:2px; position:relative;">
+        <span style="font-weight:bold;">@GetDisplayValue()</span>
+    </div>
+}
 
 @code {
     [Parameter]
     public UnoCard? Card { get; set; }
+    [Parameter]
+    public bool FaceDown { get; set; } = false;
 
     private string GetColor()
     {
@@ -27,6 +36,12 @@
         if (Card == null) return "";
         if ((int)Card.Value >= 0 && (int)Card.Value <= 9)
             return ((int)Card.Value).ToString();
-        return Card.Value.ToString();
+        // Add space for Draw Two, Wild Draw Four, etc.
+        return Card.Value switch
+        {
+            UnoValue.DrawTwo => "Draw Two",
+            UnoValue.WildDrawFour => "Wild Draw Four",
+            _ => Card.Value.ToString()
+        };
     }
 }

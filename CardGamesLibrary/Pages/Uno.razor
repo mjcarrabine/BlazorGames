@@ -12,15 +12,15 @@
 @if (!GameService.GameStarted && !string.IsNullOrWhiteSpace(GameService.Message) && (GameService.Message.Contains("win") || GameService.Message.Contains("Win")))
 {
     <div class="alert alert-success">@GameService.Message</div>
-    <button class="btn btn-success" @onclick="GameService.StartGame">Start Uno Game</button>
+    <button class="btn btn-success" @onclick="StartNewGame">Start Uno Game</button>
 }
 else if (!GameService.GameStarted)
 {
-    <button class="btn btn-success" @onclick="GameService.StartGame">Start Uno Game</button>
+    <button class="btn btn-success" @onclick="StartNewGame">Start Uno Game</button>
 }
 else
 {
-    <h3>Computer's Hand (@GameService.ComputerHand.Count cards)</h3>
+    <h3>Computer's Hand</h3>
     <ul class="list-unstyled d-flex flex-wrap">
         @foreach (var card in GameService.ComputerHand)
         {
@@ -30,9 +30,17 @@ else
         }
     </ul>
 
-    <h4 class="my-3">
-        Top Card: <span class="text-info"><UnoCardDisplay Card="GameService.TopCard" /></span>
-    </h4>
+    <div class="my-3">
+        <div style="font-weight: bold; font-size: 1.2em; margin-bottom: 0.3em;">Draw Pile</div>
+        <div style="display: flex; align-items: flex-start;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <UnoCardDisplay FaceDown="true" />
+                <span style="font-size: 1.1em; margin-top: 0.2em;">@GameService.DrawPile.Count</span>
+            </div>
+            <span style="margin-left: 2rem;"></span>
+            <UnoCardDisplay Card="GameService.TopCard" />
+        </div>
+    </div>
 
     <h3>Your Hand</h3>
     <ul class="list-unstyled d-flex flex-wrap">
@@ -85,6 +93,13 @@ else
 
 @code {
     UnoCard? pendingWildCard;
+    void StartNewGame()
+    {
+        pendingWildCard = null;
+        GameService.AwaitingWildColor = false;
+        GameService.StartGame();
+        StateHasChanged();
+    }
     void PromptWildColor(UnoCard card)
     {
         pendingWildCard = card;

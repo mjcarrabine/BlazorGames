@@ -87,6 +87,7 @@ namespace CardGamesLibrary.Shared
 
         public void PlayCard(UnoCard card, UnoColor? chosenColor = null)
         {
+            if (!GameStarted) return;
             if (!PlayerTurn || !CanPlay(card))
             {
                 Message = "Invalid move.";
@@ -149,9 +150,9 @@ namespace CardGamesLibrary.Shared
                 Message = $"You played {card}.";
             }
             // Handle Skip card
-            if (card.Value == UnoValue.Skip)
+            if (card.Value == UnoValue.Skip || card.Value == UnoValue.Reverse)
             {
-                Message += " The next player's turn is skipped.";
+                Message += card.Value == UnoValue.Skip ? " The next player's turn is skipped." : " Reverse acts as Skip in a 2-player game.";
                 PlayerTurn = true;
                 return;
             }
@@ -194,7 +195,17 @@ namespace CardGamesLibrary.Shared
             if (TopCard == null) return false;
             if (activeWildColor != null)
             {
+                // Only allow WildDrawFour if no other playable cards
+                if (card.Value == UnoValue.WildDrawFour)
+                {
+                    return !PlayerHand.Any(c => c != card && c.Color != UnoColor.Wild && (c.Color == activeWildColor || c.Value == TopCard.Value));
+                }
                 return card.Color == activeWildColor || card.Color == UnoColor.Wild;
+            }
+            // Only allow WildDrawFour if no other playable cards
+            if (card.Value == UnoValue.WildDrawFour)
+            {
+                return !PlayerHand.Any(c => c != card && c.Color != UnoColor.Wild && (c.Color == TopCard.Color || c.Value == TopCard.Value));
             }
             return card.Color == TopCard.Color || card.Value == TopCard.Value || card.Color == UnoColor.Wild;
         }
@@ -202,6 +213,7 @@ namespace CardGamesLibrary.Shared
         public bool AwaitingWildColor { get; set; } = false;
         public void ComputerMove()
         {
+            if (!GameStarted) return;
             if (ComputerHand.Count == 0)
             {
                 Message = "Computer wins!";
@@ -245,13 +257,13 @@ namespace CardGamesLibrary.Shared
                     activeWildColor = null;
                     Message += $" Computer played {playable}.";
                 }
-                // Handle Skip card for computer
-                if (playable.Value == UnoValue.Skip)
+                // Handle Skip or Reverse card for computer
+                if (playable.Value == UnoValue.Skip || playable.Value == UnoValue.Reverse)
                 {
-                    Message += " Your turn is skipped.";
-                    // In a two-player game, skip means computer gets another turn
+                    Message += playable.Value == UnoValue.Skip ? " Your turn is skipped." : " Reverse acts as Skip in a 2-player game.";
+                    // In a two-player game, skip/reverse means computer gets another turn
                     PlayerTurn = false;
-                    // Check win after skip
+                    // Check win after skip/reverse
                     if (ComputerHand.Count == 0)
                     {
                         Message = "Computer wins!";
