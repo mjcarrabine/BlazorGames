@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "CardGamesClient",
   "resources": {
-    "hash": "sha256-vMWgonLgm1/Rg/QXp3kwiK+Wpba4v/Geryu3j1uTMjs=",
+    "hash": "sha256-cpP5hcd67GbagHYApyer30Z884xgtFtEuiifn3Eg3Aw=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-YyxJV6dv935qHoQAmjB+2qRjHeGpm4SyWxE0T/KvsIE="
     },
@@ -33,12 +33,12 @@
       "Microsoft.JSInterop.wasm": "sha256-/rDmf8w7Wt1DX1WHQjtLlg2jQ3tNvetWdfJ+XiOSJsE=",
       "Microsoft.JSInterop.WebAssembly.wasm": "sha256-a+efVLD7FPKFKpE1X2rFnlYPOwZToJnvjYU3hBSBB2Y=",
       "System.Collections.Concurrent.wasm": "sha256-iH9DkaS3TID8zOAOD1QEqvaeJJojR3KVVKAelxcWMcw=",
-      "System.Collections.wasm": "sha256-uIZUlLVLOqTvl+lyhpQQm8sphJAjEzFkzYIMAjcQfZM=",
+      "System.Collections.wasm": "sha256-07OU9gD2OewxQWOZqFKGINoOh8307w2S5Mz6qlR74fM=",
       "System.ComponentModel.Primitives.wasm": "sha256-1OwPdMpvcf2Rx3FYwsv22j8cNrhYutfKgs+yXJP6Hkg=",
       "System.ComponentModel.TypeConverter.wasm": "sha256-zKk5/Gtt59JFGP1exqa9mHYThYPfD+NlYdsBqNca/no=",
       "System.ComponentModel.wasm": "sha256-rT7YsafDUsM9OBrt4xARyaNKhiOZeBWbYvUF3aZINVA=",
       "System.Console.wasm": "sha256-mRA37dVZSXvw8/5ffNOe3QpDk+T1JCBrPhcJguB0x/M=",
-      "System.Linq.wasm": "sha256-rylPonb77g3mrUrhFtToHZa1wBq0O8Hl6dz9Pgxp0HA=",
+      "System.Linq.wasm": "sha256-wPYeEnoOR+DNXm3XwGJDbDWskthc3kp5Ft+++HzpM1U=",
       "System.Memory.wasm": "sha256-Smo3tsxsgoJiuuu5yoCtiOxBtRPvf01R+rNeztX9EaM=",
       "System.Net.Http.wasm": "sha256-Ybg+Xaf0wCL39o/1p+S081Z70rn3s+4kCde4fLaJnK4=",
       "System.Net.Primitives.wasm": "sha256-RwM+w4gtz7uwFzkaj2p4tbmHATfy9JN98xyfCbMv0i4=",
@@ -52,8 +52,8 @@
       "System.Threading.wasm": "sha256-vu/8eZW8N8PsS5zQizT0ESdpr2tptKYbWqjeBtvqNNw=",
       "System.wasm": "sha256-ovI9fLxLRfh4RwNCi87t4luRVFfNap5GiBEwY0eh3bc=",
       "System.Private.CoreLib.wasm": "sha256-abXKlz05mo+DgdsPxEhKar1hXAk5F2tdIEzyM//+CRs=",
-      "CardGamesLibrary.wasm": "sha256-HsBhwr+UPtuxYK8xmwnarWoQdgUZWN/KQJA9PqKCr+8=",
-      "CardGamesClient.wasm": "sha256-qjIzvKjLV9dARKTpaFrcSAIGIpekR0HmIy0F3LsyUw8="
+      "CardGamesLibrary.wasm": "sha256-ad7cFQJtgpzEKE11gtubbVWy4nSNiKXxzKS5/eT5rrc=",
+      "CardGamesClient.wasm": "sha256-H7u7udCuN3B1Thb1xCecxQ+z1Hl/1BH5ZkmFemYU0e0="
     }
   },
   "cacheBootResources": true,
