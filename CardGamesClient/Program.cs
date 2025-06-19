@@ -11,5 +11,6 @@ builder.Services.AddScoped<CardGamesLibrary.Shared.SolitaireGameService>();
 builder.Services.AddScoped<CardGamesLibrary.Shared.WarGameService>();
 builder.Services.AddScoped<CardGamesLibrary.Shared.BlackjackGameService>();
 builder.Services.AddScoped<CardGamesLibrary.Shared.UnoGameService>();
+builder.Services.AddScoped<CardGamesLibrary.Shared.GoFishService>();
 
 await builder.Build().RunAsync();

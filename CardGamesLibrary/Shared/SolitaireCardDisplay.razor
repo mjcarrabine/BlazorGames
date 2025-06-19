@@ -1,0 +1,29 @@
+@using CardGamesLibrary.Shared
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+
+@if (Card is null || !FaceUp)
+{
+    <span class="solitaire-card-back">🂠</span>
+}
+else
+{
+    <span class="solitaire-card-face @(IsTopCard ? "solitaire-card-top" : null) @(Highlight ? "solitaire-card-highlight" : null)"
+          @onclick="OnClick"
+          @ondblclick="OnDoubleClick"
+          @ondragstart="OnDragStart"
+          draggable="@(IsTopCard && Draggable ? "true" : null)">
+        @((MarkupString)(Card?.ToString() ?? ""))
+    </span>
+}
+
+@code {
+    [Parameter] public Card? Card { get; set; }
+    [Parameter] public bool FaceUp { get; set; } = true;
+    [Parameter] public bool IsTopCard { get; set; } = false;
+    [Parameter] public bool Highlight { get; set; } = false;
+    [Parameter] public bool Draggable { get; set; } = false;
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnDoubleClick { get; set; }
+    [Parameter] public EventCallback<DragEventArgs> OnDragStart { get; set; }
+}

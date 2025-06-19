@@ -46,8 +46,14 @@ namespace CardGamesLibrary.Shared
             }
             // Ensure the first top card is not an action or wild card
             UnoCard firstCard;
+            int safetyCounter = 0;
+            const int maxAttempts = 100;
             do
             {
+                if (++safetyCounter > maxAttempts)
+                {
+                    throw new InvalidOperationException("Unable to find a valid starting card for Uno after multiple attempts. The deck may be malformed.");
+                }
                 firstCard = DrawPile.Pop();
                 // If not allowed, put it at the bottom and try again
                 if (firstCard.Value == UnoValue.Skip || firstCard.Value == UnoValue.Reverse ||

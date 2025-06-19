@@ -1,7 +1,7 @@
 .card-face {
     display: inline-block;
-    width: 6rem;         /* was 3rem */
-    height: 8.4rem;      /* was 4.2rem */
+    width: 6.5rem;         /* was 3rem */
+    height: 9rem;      /* was 4.2rem */
     border: 1px solid #333;
     border-radius: 0.4rem;
     background: white;

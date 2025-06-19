@@ -1,24 +1,21 @@
-﻿@using System
+@using CardGamesLibrary.Shared
 @using System.Globalization
 
-@if (Card is null)
+@if (Card == null)
 {
-    <div class="card-face card-back">🂠</div>
+    <div class="go-fish-card card-back">🂠</div>
 }
 else
 {
-    <div class="card-face @GetSuitClass(Card.Suit) @(Highlight ? "card-highlight" : "")">
+    <div class="go-fish-card @(Highlight ? "highlight-green" : "")">
         <span class="card-rank">@GetRankSymbol(Card.Rank)</span>
-        <span class="card-suit">@GetSuitSymbol(Card.Suit)</span>
+        <span class="ms-1 @(IsRedSuit(Card.Suit) ? "text-danger" : "")">@GetSuitSymbol(Card.Suit)</span>
     </div>
 }
 
 @code {
-    [Parameter]
-    public Card? Card { get; set; }
-
-    [Parameter]
-    public bool Highlight { get; set; }
+    [Parameter] public Card? Card { get; set; }
+    [Parameter] public bool Highlight { get; set; } = false;
 
     private string GetSuitSymbol(Suit suit) => suit switch
     {
@@ -38,9 +35,8 @@ else
         _ => ((int)rank).ToString(CultureInfo.InvariantCulture)
     };
 
-    private string GetSuitClass(Suit suit) => suit switch
+    private bool IsRedSuit(Suit suit)
     {
-        Suit.Hearts or Suit.Diamonds => "red-suit",
-        _ => "black-suit"
-    };
+        return suit == Suit.Hearts || suit == Suit.Diamonds;
+    }
 }

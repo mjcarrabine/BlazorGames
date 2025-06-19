@@ -1,0 +1,27 @@
+.solitaire-card-face, .solitaire-card-back {
+    width: 6.5rem;
+    height: 9rem;
+    display: inline-block;
+    text-align: center;
+    font-size: 3rem;
+    border: 1px solid #333;
+    border-radius: 0.4rem;
+    background: white;
+    margin: 0.2rem;
+    box-shadow: 1px 1px 4px #bbb;
+    position: relative;
+    line-height: normal;
+}
+
+.solitaire-card-back {
+    color: gray;
+    background: repeating-linear-gradient(135deg, #e0e0e0 0 10px, #bbb 10px 20px);
+}
+
+.solitaire-card-face {
+    /* Additional face-specific styles if needed */
+}
+
+.solitaire-card-face:not(.solitaire-card-top), .solitaire-card-back:not(.solitaire-card-top) {
+    height: 4rem;
+}

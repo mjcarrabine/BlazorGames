@@ -5,20 +5,30 @@
 
 <h3>War</h3>
 
-<div class="mb-3 row">
-    <div class="col-md-4">
-        <label>Player 1 Name:</label>
-        <input class="form-control" @bind="player1Name" />
+@if (WarGame.Player1Count == 0 || WarGame.Player2Count == 0 || WarGame.IsGameOver())
+{
+    <div class="mb-3 row">
+        <div class="col-md-4">
+            <label>Player 1 Name:</label>
+            <input class="form-control" @bind="player1Name" />
+        </div>
+        <div class="col-md-4">
+            <label>Player 2 Name:</label>
+            <input class="form-control" @bind="player2Name" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary me-2" @onclick="StartGame">Start Game</button>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label>Player 2 Name:</label>
-        <input class="form-control" @bind="player2Name" />
+}
+else
+{
+    <div class="mb-3 row">
+        <div class="col-md-12 d-flex align-items-end justify-content-end">
+            <button class="btn btn-success" @onclick="PlayRound" disabled="@(!CanPlay)">Deal</button>
+        </div>
     </div>
-    <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-primary me-2" @onclick="StartGame">Start Game</button>
-        <button class="btn btn-success" @onclick="PlayRound" disabled="@(!CanPlay)">Deal</button>
-    </div>
-</div>
+}
 
 <div class="row mb-2">
     <div class="col">
@@ -27,7 +37,7 @@
         <div>
             @if (WarGame.Player1Card != null)
             {
-                <CardDisplay Card="WarGame.Player1Card" Highlight="@IsMainRoundWinner(1)" />
+                <WarCardDisplay Card="WarGame.Player1Card" Highlight="@IsMainRoundWinner(1)" />
             }
         </div>
     </div>
@@ -37,7 +47,7 @@
         <div>
             @if (WarGame.Player2Card != null)
             {
-                <CardDisplay Card="WarGame.Player2Card" Highlight="@IsMainRoundWinner(2)" />
+                <WarCardDisplay Card="WarGame.Player2Card" Highlight="@IsMainRoundWinner(2)" />
             }
         </div>
     </div>
@@ -59,11 +69,11 @@
                             bool highlight = isFinalStep && step.Player1FaceUp[i] && IsWarWinner(1);
                             if (step.Player1Cards[i] != null && step.Player1FaceUp[i])
                             {
-                                <CardDisplay Card="step.Player1Cards[i]" Highlight="@highlight" />
+                                <WarCardDisplay Card="step.Player1Cards[i]" Highlight="@highlight" />
                             }
                             else if (step.Player1Cards[i] != null)
                             {
-                                <CardDisplay Card="null" />
+                                <WarCardDisplay Card="null" />
                             }
                         }
                     </span>
@@ -73,11 +83,11 @@
                             bool highlight = isFinalStep && step.Player2FaceUp[i] && IsWarWinner(2);
                             if (step.Player2Cards[i] != null && step.Player2FaceUp[i])
                             {
-                                <CardDisplay Card="step.Player2Cards[i]" Highlight="@highlight" />
+                                <WarCardDisplay Card="step.Player2Cards[i]" Highlight="@highlight" />
                             }
                             else if (step.Player2Cards[i] != null)
                             {
-                                <CardDisplay Card="null" />
+                                <WarCardDisplay Card="null" />
                             }
                         }
                     </span>
@@ -97,7 +107,7 @@
     {
         player1Name = WarGame.Player1Name = "Captain Underpants";
         player2Name = WarGame.Player2Name = "Dogman";
-        WarGame.StartGame();
+        // WarGame.StartGame(); // Removed auto-start on navigation
     }
 
     private void StartGame()

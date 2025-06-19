@@ -1,11 +1,14 @@
-﻿<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="new[] { typeof(CardGamesLibrary.Pages.Solitaire).Assembly }">
+﻿@namespace CardGamesClient
+@using CardGamesClient.Layout
+
+<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="new[] { typeof(CardGamesLibrary.Pages.Solitaire).Assembly }">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(CardGamesClient.Layout.MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
         <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
+        <LayoutView Layout="@typeof(CardGamesClient.Layout.MainLayout)">
             <p role="alert">Sorry, there's nothing at this address.</p>
         </LayoutView>
     </NotFound>

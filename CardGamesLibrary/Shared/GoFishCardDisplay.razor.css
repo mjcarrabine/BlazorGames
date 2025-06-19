@@ -1,0 +1,45 @@
+.go-fish-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 6.5rem;
+    height: 9rem;
+    font-size: 3rem;
+    border: 1px solid #333;
+    border-radius: 0.4rem;
+    background: #fff;
+    margin: 0.2rem;
+    text-align: center;
+    box-shadow: 1px 1px 4px #bbb;
+    position: relative;
+    transition: box-shadow 0.2s;
+}
+.card-back {
+    background: repeating-linear-gradient(135deg, #e0e0e0 0 10px, #bbb 10px 20px);
+    color: #333;
+    font-size: 2rem;
+    border-style: dashed;
+}
+.go-fish-card:disabled {
+    background: #eee;
+    color: #aaa;
+}
+.go-fish-card .ms-1 {
+    line-height: 1;
+    vertical-align: middle;
+}
+.highlight-green {
+    background: #d4edda !important;
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40,167,69,.25);
+}
+.go-fish-hand-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    width: 100%;
+}
+.go-fish-hand-row > * {
+    display: inline-flex !important;
+}

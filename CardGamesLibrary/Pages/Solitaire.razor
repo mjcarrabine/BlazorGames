@@ -41,14 +41,15 @@ else
             <span class="fw-bold">Score:</span> @GameService.Score
         </div>
     </div>
-    <h3>Solitaire Tableau</h3>
+
+    <h3>Stock</h3>
     <div class="row mb-3">
         <div class="col-auto">
             <h5>Stock</h5>
-            <div style="min-width:10rem; min-height:5rem; max-height:5rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
+            <div style="border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
                 @if (GameService.Stock.Count > 0)
                 {
-                    <span @onclick="GameService.DrawFromStock" style="cursor:pointer; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal; font-size:2rem;">🂠</span>
+                    <span @onclick="GameService.DrawFromStock" style="cursor:pointer; display:inline-block; text-align:center; height:100%; line-height:normal; font-size:2rem;">🂠</span>
                 }
                 else if (GameService.Waste.Count > 0 && (GameService.MaxStockRecycles == -1 || GameService.StockRecycleCount < GameService.MaxStockRecycles))
                 {
@@ -68,7 +69,7 @@ else
         </div>
         <div class="col-auto">
             <h5>Waste</h5>
-            <div style="min-width:10rem; min-height:5rem; max-height:5rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
+            <div style="min-height:9rem;border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
                 @if (GameService.Waste.Count > 0)
                 {
                     var wasteDisplay = GameService.GetWasteDisplay();
@@ -79,13 +80,13 @@ else
                               style="cursor:move; min-width:2.5rem; display:inline-block; text-align:center; height:100%; line-height:normal; font-size:2rem; margin-right:0.2rem;"
                               @ontouchstart="OnTouchStartWaste"
                               @ondblclick="@(() => OnWasteCardDoubleClick(card))">
-                            @((MarkupString)card.ToString())
+                            <SolitaireCardDisplay Card="card" FaceUp="true" IsTopCard="true"/>
                         </span>
                     }
                 }
                 else
                 {
-                    <span style="color:gray; font-size:2rem; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;">🂠</span>
+                    <SolitaireCardDisplay Card="null" FaceUp="false" />
                 }
             </div>
             @if (GameService.Waste.Count > 0 && CanMoveWasteToAnyFoundation())
@@ -96,30 +97,34 @@ else
             }
         </div>
     </div>
+
+    <h3>Foundation</h3>
     <div class="row mb-2">
         @for (int f = 0; f < GameService.Foundations.Count; f++)
         {
             var foundationIndex = f;
             <div class="col-auto"
-                 style="min-width:11rem; max-width:11rem;"
+                 style="min-width:7.5rem;"
                  @ondragover:preventDefault
                  @ondragover="(e => OnDragOverFoundation(e, foundationIndex))"
                  @ondrop="(e => OnDropFoundation(e, foundationIndex))"
                  @ontouchend="@(() => OnTouchEndFoundation(foundationIndex))">
-                <h6>Foundation @(foundationIndex + 1)</h6>
-                <div style="min-width:10rem; min-height:2.5rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center;">
+                
+                @* <div style="min-width:7.5rem; min-height:9rem; border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center;"> *@
                     @if (GameService.Foundations[foundationIndex].Count > 0)
                     {
-                        <span style="font-size:2rem; min-width:10rem; min-height:5rem; max-height:5rem; display:inline-flex; align-items:center; justify-content:center; text-align:center;">@((MarkupString)GameService.Foundations[foundationIndex].Last().ToString())</span>
+                        <SolitaireCardDisplay Card="GameService.Foundations[foundationIndex].Last()" FaceUp="true" IsTopCard="true" />
                     }
                     else
                     {
-                        <span style="color:gray; font-size:2rem; min-width:10rem; min-height:5rem; max-height:5rem; display:inline-flex; align-items:center; justify-content:center; text-align:center;">🂠</span>
+                        <SolitaireCardDisplay Card="null" FaceUp="false" />
                     }
-                </div>
+                @* </div> *@
             </div>
         }
     </div>
+
+    <h3>Tableau</h3>
     <div class="row" style="flex-wrap:nowrap; overflow-x:auto;">
         @for (int i = 0; i < GameService.Tableau.Count; i++)
         {
@@ -131,35 +136,25 @@ else
                 showMoveToTableauButtons = true;
             }
             <div class="col-auto"
-                 style="padding-right:0.5rem; min-width:11rem; max-width:11rem;"
+                 style="padding-right:0.5rem; min-width:8rem;"
                  @ondragover:preventDefault
                  @ondragover="(e => OnDragOverTableau(e, pileIndex))"
                  @ondrop="(e => OnDropTableau(e, pileIndex))"
                  @ontouchend="@(() => OnTouchEndTableau(pileIndex))">
-                <h5>Pile @(i + 1)</h5>
+               
                 @for (int j = 0; j < pile.Count; j++)
                 {
                     var cardIndex = j; // Capture for closure
                     bool isTop = j == pile.Count - 1;
                     var (card, faceUp) = pile[j];
                     <div style="margin-bottom:0.2rem;">
-                        <span style="min-width:10rem; min-height:@(isTop ? "6rem" : "4rem"); max-height:@(isTop ? "6rem" : "4rem"); border:1px solid #ccc; border-radius:0.5rem; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; background:white; width:10rem;">
-                        @if (faceUp)
-                        {
-                            <span @ondragstart="@((e) => OnDragStart(pileIndex, cardIndex))"
-                                  draggable="true"
-                                  style="cursor:move; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;"
-                                  @ontouchstart="@(() => OnTouchStartTableau(pileIndex, cardIndex))"
-                                  @onclick="@(() => OnCardClick(pileIndex, cardIndex))"
-                                  @ondblclick="@(() => OnCardDoubleClick(pileIndex, cardIndex))">
-                                @((MarkupString)card.ToString())
-                            </span>
-                        }
-                        else
-                        {
-                            <span style="color:gray; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;">🂠</span>
-                        }
-                        </span>
+                            <SolitaireCardDisplay Card="card"
+                                                 FaceUp="@faceUp"
+                                                 IsTopCard="@isTop"
+                                                 Draggable="@isTop"
+                                                 OnClick="@(faceUp ? (MouseEventArgs e) => OnCardClick(pileIndex, cardIndex) : null)"
+                                                 OnDoubleClick="@(faceUp ? (MouseEventArgs e) => OnCardDoubleClick(pileIndex, cardIndex) : null)" />
+
                         @if (isTop && faceUp)
                         {
                             bool canMoveToAnyFoundation = false;
@@ -177,7 +172,9 @@ else
                             }
                             if (canMoveToAnyFoundation)
                             {
-                                <button class="btn btn-outline-success btn-sm ms-2 bg-success text-white" @onclick="@(() => MoveToFirstAvailableFoundation(pileIndex))">To Foundation</button>
+                                <div class="w-100 mt-1">
+                                    <button class="btn btn-outline-success btn-sm bg-success text-white w-100" @onclick="@(() => MoveToFirstAvailableFoundation(pileIndex))">To Foundation</button>
+                                </div>
                             }
                         }
                     </div>
@@ -201,7 +198,7 @@ else
                         bool canMoveWaste = GameService.CanMoveWasteToTableau(pileIndex);
                         if (canMoveWaste)
                         {
-                            <button class="btn btn-outline-success btn-sm mb-1 bg-success text-white" @onclick="@(() => MoveWasteToTableauUI(pileIndex))">Move Waste Here</button>
+                            <button class="btn btn-outline-success btn-sm mb-1 bg-success text-white" @onclick="@(() => MoveWasteToTableauUI(pileIndex))">Waste to Here</button>
                         }
                     }
                 </div>
