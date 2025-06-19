@@ -54,7 +54,9 @@ else
             <div style="border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
                 @if (GameService.Stock.Count > 0)
                 {
-                    <span @onclick="GameService.DrawFromStock" style="cursor:pointer; display:inline-block; text-align:center; height:100%; line-height:normal; font-size:2rem;">🂠</span>
+                    <span @onclick="GameService.DrawFromStock" style="cursor:pointer;">
+                        <SolitaireCardDisplay Card="null" FaceUp="false" />
+                    </span>
                 }
                 else if (GameService.Waste.Count > 0 && (GameService.MaxStockRecycles == -1 || GameService.StockRecycleCount < GameService.MaxStockRecycles))
                 {
@@ -62,7 +64,7 @@ else
                 }
                 else
                 {
-                    <span style="color:gray; font-size:2rem; min-width:10rem; display:inline-block; text-align:center; height:100%; line-height:normal;">🂠</span>
+                    <SolitaireCardDisplay Card="null" FaceUp="false" />
                 }
             </div>
             <div style="text-align:center; font-size:1rem; color:#333; margin-top:0.2rem;">

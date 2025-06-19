@@ -21,12 +21,11 @@
         </div>
     </div>
 }
-else
+
+@if (!(WarGame.Player1Count == 0 || WarGame.Player2Count == 0 || WarGame.IsGameOver()))
 {
-    <div class="mb-3 row">
-        <div class="col-md-12 d-flex align-items-end justify-content-end">
-            <button class="btn btn-success" @onclick="PlayRound" disabled="@(!CanPlay)">Deal</button>
-        </div>
+    <div class="mt-4 mb-4 text-start">
+        <button class="btn btn-success" @onclick="PlayRound" disabled="@(!CanPlay)">Deal</button>
     </div>
 }
 
@@ -98,6 +97,8 @@ else
 }
 
 <div class="alert alert-info">@WarGame.Status</div>
+
+
 
 @code {
     private string player1Name = "Captain Underpants";
