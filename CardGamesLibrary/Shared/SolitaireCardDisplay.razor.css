@@ -3,7 +3,7 @@
     height: 9rem;
     display: inline-block;
     text-align: center;
-    font-size: 3rem;
+    font-size: 2.5rem;
     border: 1px solid #333;
     border-radius: 0.4rem;
     background: white;
@@ -23,5 +23,5 @@
 }
 
 .solitaire-card-face:not(.solitaire-card-top), .solitaire-card-back:not(.solitaire-card-top) {
-    height: 4rem;
+    height: 3.5rem;
 }

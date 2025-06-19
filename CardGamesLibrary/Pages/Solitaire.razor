@@ -8,6 +8,11 @@
 <PageTitle>Solitaire</PageTitle>
 
 <h1>Solitaire</h1>
+<div class="mb-3">
+    <button class="btn btn-warning me-2" @onclick="GameService.Undo" disabled="@(!GameService.CanUndo)">Undo</button>
+    <button class="btn btn-warning me-2" @onclick="GameService.Redo" disabled="@(!GameService.CanRedo)">Redo</button>
+    <button class="btn btn-secondary" @onclick="GameService.NewGame">New Game</button>
+</div>
 
 @if (!GameService.GameStarted)
 {
@@ -43,7 +48,7 @@ else
     </div>
 
     <h3>Stock</h3>
-    <div class="row mb-3">
+    <div class="row mb-3" style="min-height: 14rem;">
         <div class="col-auto">
             <h5>Stock</h5>
             <div style="border:1px solid #ccc; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; background:white;">
@@ -62,9 +67,6 @@ else
             </div>
             <div style="text-align:center; font-size:1rem; color:#333; margin-top:0.2rem;">
                 Cards left: @GameService.Stock.Count
-            </div>
-            <div style="text-align:center; margin-top:0.2rem;">
-                <button class="btn btn-primary btn-sm" @onclick="GameService.DrawFromStock" disabled="@(GameService.Stock.Count == 0)">Draw</button>
             </div>
         </div>
         <div class="col-auto">
@@ -99,7 +101,7 @@ else
     </div>
 
     <h3>Foundation</h3>
-    <div class="row mb-2">
+    <div class="row mb-2" style="min-height: 10rem;">
         @for (int f = 0; f < GameService.Foundations.Count; f++)
         {
             var foundationIndex = f;
@@ -205,11 +207,6 @@ else
             </div>
         }
     </div>
-    <div class="mb-2">
-        <button class="btn btn-warning me-2" @onclick="GameService.Undo" disabled="@(!GameService.CanUndo)">Undo</button>
-        <button class="btn btn-warning me-2" @onclick="GameService.Redo" disabled="@(!GameService.CanRedo)">Redo</button>
-        <button class="btn btn-secondary" @onclick="GameService.NewGame">New Game</button>
-    </div>
     @if (GameService.IsWin)
     {
         <div class="alert alert-success fw-bold fs-4">Congratulations! You won!</div>
@@ -217,6 +214,13 @@ else
     @if (GameService.GameStarted && !GameService.IsWin && !GameService.HasAnyLegalMove())
     {
         <div class="alert alert-danger fw-bold fs-5 mt-2">No more legal moves! (Stalemate)</div>
+    }
+
+    @if (GameService.GameStarted)
+    {
+        <div class="mt-4 mb-4 text-start">
+            <button class="btn btn-success btn-lg" @onclick="GameService.DrawFromStock" disabled="@(GameService.Stock.Count == 0)">Draw</button>
+        </div>
     }
 }
 
